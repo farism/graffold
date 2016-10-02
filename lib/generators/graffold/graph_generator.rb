@@ -1,5 +1,7 @@
 require 'rails/generators/base'
 
+require 'graffold/spider'
+
 class Graffold::GraphGenerator < Rails::Generators::Base
 
   source_root File.expand_path('../templates', __FILE__)

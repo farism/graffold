@@ -1,3 +1,5 @@
+require 'graffold/type'
+
 STDOUT.sync = true
 
 class Graffold::Spider

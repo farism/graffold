@@ -1,3 +1,5 @@
+require 'graffold/field'
+
 class Graffold::Association
 
   def initialize(association)

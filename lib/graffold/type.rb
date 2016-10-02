@@ -1,3 +1,6 @@
+require 'graffold/association'
+require 'graffold/column'
+
 class Graffold::Type
 
   attr_reader :model, :name, :columns, :valid_associations, :invalid_associations
