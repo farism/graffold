@@ -12,11 +12,11 @@ class Graffold::GraphGenerator < Rails::Generators::Base
   argument :namespace, type: :string, default: nil, required: false,
     desc: 'Scaffold namespace'
 
-  class_option :verbose, type: :boolean, default: false, required: false,
-    desc: 'Do verbose output'
-
   class_option :depth, type: :string, default: '-1', required: false,
     desc: 'How deep to crawl. Pass `0` to generate a single type'
+
+  class_option :verbose, type: :boolean, default: false, required: false,
+    desc: 'Do verbose output'
 
   def scaffold
     model = begin
