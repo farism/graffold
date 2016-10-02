@@ -1,0 +1,3 @@
+class Graffold::Mutation
+
+end
