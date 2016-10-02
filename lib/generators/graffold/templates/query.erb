@@ -1,0 +1,10 @@
+<%= module_name %>QueryType = GraphQL::ObjectType.define do
+
+  name "Query"
+  description "Query root"
+
+<% @spider.web.each do |type| -%>
+  field :<%= type.field_name %>, field: ResourceField.new(type: <%= module_name %><%= type.name %>Type, model: <%= type.model.name %>)
+<% end -%>
+
+end

@@ -1,0 +1,41 @@
+<%= @type.name %>Type = GraphQL::ObjectType.define do
+
+  name '<%= @type.name %>'
+  description ''
+
+  # relay node interface
+
+  interfaces [NodeIdentification.interface]
+  global_id_field :id
+
+  # scalars
+
+<% @type.scalar_fields.each do |f| -%>
+  field :<%= f.name %>, types.<%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
+
+  # belongs_to
+
+<% @type.belongs_to_fields.each do |f| -%>
+  field :<%= f.name %>, <%= module_name %><%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
+
+  # has_one
+
+<% @type.has_one_fields.each do |f| -%>
+  field :<%= f.name %>, <%= module_name %><%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
+
+  # has_many
+
+<% @type.has_many_fields.each do |f| -%>
+  field :<%= f.name %>, types[<%= module_name %><%= f.type %>], ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
+
+  # invalid
+
+<% @type.invalid_associations.each do |a| -%>
+  # <%= a.association.macro %> <%= a.association.name %>
+<% end -%>
+
+end
