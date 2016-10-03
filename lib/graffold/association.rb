@@ -2,13 +2,12 @@ require 'graffold/field'
 
 class Graffold::Association
 
-  def initialize(association)
+  attr_reader :parent, :association
+
+  def initialize(parent, association)
+    @parent = parent
     @association = association
     @model = association.klass.name.constantize rescue nil
-  end
-
-  def association
-    @association
   end
 
   def name
@@ -56,7 +55,7 @@ class Graffold::Association
   end
 
   def to_field
-    Graffold::Field.new(name: name, required: required?, type: type, model: model, source: @association)
+    Graffold::Field.new(name: name, required: required?, type: type, model: model, parent: @parent, source: @association)
   end
 
 end

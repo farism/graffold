@@ -7,10 +7,10 @@ class Graffold::Type
 
   def initialize(model)
     @model = model
-    @columns = model.columns.map(&Graffold::Column.method(:new))
+    @columns = model.columns.map{|c| Graffold::Column.new(self, c)}
     @associations = model
       .reflect_on_all_associations
-      .map(&Graffold::Association.method(:new))
+      .map{|a| Graffold::Association.new(self, a)}
       .sort_by{|a| a.name}
     @valid_associations = @associations.select{|a| a.valid?}
     @invalid_associations = @associations.select{|a| a.invalid?}

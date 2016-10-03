@@ -2,12 +2,15 @@ require 'graffold/field'
 
 class Graffold::Column
 
-  def initialize(column)
+  attr_reader :parent, :column
+
+  def initialize(parent, column)
+    @parent = parent
     @column = column
   end
 
   def to_field
-    Graffold::Field.new(name: name, required: required?, type: type, source: @column)
+    Graffold::Field.new(name: name, required: required?, type: type, parent: @parent, source: @column)
   end
 
   private

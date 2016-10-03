@@ -7,11 +7,26 @@ class Graffold::Spider
   def initialize(root, max_depth: -1)
     @root = root
     @max_depth = max_depth
+    @depth = 0
     @web = {}
   end
 
   def web
     @web.values.sort_by{|t| t.field_name}
+  end
+
+  def depth
+    @depth
+  end
+
+  def all_valid_associations
+    web
+      .inject([]) {|acc, type| acc + type.valid_associations}
+      .uniq{|a| a.name}
+  end
+
+  def all_invalid_associations
+    web.inject([]) {|acc, type| acc + type.invalid_associations}
   end
 
   def crawl(model = @root, depth = 0)
@@ -20,6 +35,8 @@ class Graffold::Spider
     if type.valid? && !added?(type)
       print '.'
       add type
+
+      @depth = [@depth, depth].max
 
       if @max_depth == -1 || depth < @max_depth
         type.valid_associations.each do |a|
