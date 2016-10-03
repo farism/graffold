@@ -38,17 +38,9 @@ class Graffold::GraphGenerator < Rails::Generators::Base
     end
 
     template 'query.erb', 'app/graph/query_type.rb'
-    # template 'mutation.erb', 'app/graph/mutation_type.rb'
+    template 'mutation.erb', 'app/graph/mutation_type.rb'
 
-    puts ""
-    puts "#{@spider.depth} levels traversed".green
-    puts "#{@spider.web.length} types found on the graph".green
-    puts "#{@spider.all_valid_associations.length} valid associations found".green
-    puts "#{@spider.all_invalid_associations.length} invalid associations found".yellow
-    @spider.all_invalid_associations
-      .sort_by{|a| a.name}
-      .each{|a| puts "  #{a.parent.name}.#{a.name}".yellow} if verbose?
-    puts ""
+    log_spider @spider
   end
 
   private
@@ -73,9 +65,23 @@ class Graffold::GraphGenerator < Rails::Generators::Base
     options[:verbose]
   end
 
+  def log_spider(spider)
+    puts ""
+    puts "#{spider.depth} levels traversed".green
+    puts "#{spider.web.length} types found on the graph".green
+    puts "#{spider.all_valid_associations.length} valid associations found".green
+    puts "#{spider.all_invalid_associations.length} invalid associations found".yellow
+    if verbose?
+      spider.all_invalid_associations
+      .sort_by{|a| a.name}
+      .each{|a| puts "  #{a.parent.base_name}.#{a.name}".yellow}
+    end
+    puts ""
+  end
+
   def log_type(type)
     puts ''
-    puts "found type: #{type.name}".green
+    puts "found type: #{type.base_name}".green
     puts "  #{type.scalar_fields.length} scalar fields".green
     puts "  #{type.valid_associations.length} valid association fields".green
     puts "  #{type.invalid_associations.length} invalid association fields".yellow

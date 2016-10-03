@@ -2,11 +2,20 @@ require 'graffold/field'
 
 class Graffold::Column
 
-  attr_reader :parent, :column
+  attr_reader :parent, :column, :name, :type, :required, :valid, :invalid
+
+  alias_method :required?, :required
+  alias_method :valid?, :valid
+  alias_method :invalid?, :invalid
 
   def initialize(parent, column)
     @parent = parent
     @column = column
+    @name = column.name
+    @type = sql_to_graphql_type(column.sql_type)
+    @required = !column.nil?
+    @valid = true
+    @valid = !@invalid
   end
 
   def to_field
@@ -15,19 +24,7 @@ class Graffold::Column
 
   private
 
-  def name
-    @column.name
-  end
-
-  def required?
-    !@column.null
-  end
-
-  def valid?
-    true
-  end
-
-  def type
+  def sql_to_graphql_type(sql_type)
     mapping = {
       'bigint' => 'Int',
       'boolean' => 'Boolean',
@@ -49,7 +46,7 @@ class Graffold::Column
     }
 
     type = mapping.find do |k, v|
-      @column.sql_type.include? k
+      sql_type.include? k
     end
 
     return type[1] || 'String'

@@ -1,10 +1,18 @@
-<%= module_name %>QueryType = GraphQL::ObjectType.define do
+QueryType = GraphQL::ObjectType.define do
 
   name "Query"
   description "Query root"
 
+  # Used by Relay to lookup objects by uuid
+
+  field :node, GraphQL::Relay::Node.field
+
+  # Generated resource types
+
 <% @spider.web.each do |type| -%>
-  field :<%= type.field_name %>, field: ResourceField.new(type: <%= module_name %><%= type.name %>Type, model: <%= type.model.name %>)
+  field :<%= type.field_name %>, field: FetchResourceField.new(type: <%= type.type_name %>::Type, model: <%= type.model.name %>)
 <% end -%>
+
+  # Add custom fields
 
 end

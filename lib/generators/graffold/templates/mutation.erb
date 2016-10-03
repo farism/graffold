@@ -3,6 +3,10 @@ MutationType = GraphQL::ObjectType.define do
   name "Mutation"
   description "Mutation root"
 
-  # generated mutations
+<% @spider.web.each do |type| -%>
+  field :create<%= type.base_name %>, field: <%= type.type_name %>::Create.field
+  field :update<%= type.base_name %>, field: <%= type.type_name %>::Update.field
+  field :delete<%= type.base_name %>, field: <%= type.type_name %>::Delete.field
+<% end -%>
 
 end
