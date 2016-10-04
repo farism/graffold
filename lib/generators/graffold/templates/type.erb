@@ -43,7 +43,7 @@ module <%= @type.type_name %>
   end
 
   Create = GraphQL::Relay::Mutation.define do
-
+q
     name 'Create<%= @type.base_name %>'
 
 <% @type.create_input_fields.each do |f| -%>
@@ -55,9 +55,9 @@ module <%= @type.type_name %>
     resolve -> (inputs, ctx) {
       params = inputs.to_h
       params[:created_by] = ctx[:current_user]
-      <%= @type.field_name %> = <%= @type.model.name %>.create(params)
+      result = <%= @type.model.name %>.create(params)
 
-      { <%= @type.field_name %>: <%= @type.field_name %> }
+      { <%= @type.field_name %>: result }
     }
 
   end
@@ -73,7 +73,9 @@ module <%= @type.type_name %>
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
-      result = <%= @type.model %>.update(inputs[:id], inputs.to_h.except(:id))
+      params = inputs.to_h.except(:id)
+      params[:updated_by] = ctx[:current_user]
+      result = <%= @type.model %>.update(params[:id], params)
 
       { <%= @type.field_name %>: result }
     }
