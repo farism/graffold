@@ -1,23 +1,35 @@
 class Graffold::Field
 
-  attr_reader :parent, :source, :name, :type, :required, :property, :model, :scalar, :renamed
+  attr_reader :parent, :column, :association, :name, :type, :property
 
-  alias_method :scalar?, :scalar
-  alias_method :required?, :required
-  alias_method :renamed?, :renamed
-
-  def initialize(name:, type:, model: nil, scalar: true, required: false, parent: nil, source: nil)
-    camelName = name.camelize(:lower)
+  def initialize(parent: nil, column: nil, association: nil, name:, type:, required: false)
+    # camelize twice, calling camelize on properties with leading _ causes them to be ucased
+    camelName = name.camelize(:lower).camelize(:lower)
 
     @parent = parent
-    @source = source
+    @column = column
+    @association = association
     @name = camelName == 'id' ? '_id' : camelName
     @type = type
     @required = required
     @property = name
-    @model = model
-    @scalar = scalar
     @renamed = @name != name
+  end
+
+  def column?
+    !@column.nil?
+  end
+
+  def association?
+    !@association.nil?
+  end
+
+  def required?
+    @required
+  end
+
+  def renamed?
+    @renamed
   end
 
 end

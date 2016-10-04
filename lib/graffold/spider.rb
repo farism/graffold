@@ -32,9 +32,6 @@ class Graffold::Spider
   def crawl(model = @root, depth = 0)
     type = Graffold::Type.new model
 
-    # puts type.valid?
-    # puts missing?(type)
-
     if type.valid? && missing?(type)
       print '.'
       add type
@@ -43,7 +40,6 @@ class Graffold::Spider
 
       if @max_depth == -1 || depth < @max_depth
         type.valid_associations.each do |a|
-          # puts "crawling #{a.model.name}"
           crawl(a.model, depth + 1) rescue nil
         end
       end

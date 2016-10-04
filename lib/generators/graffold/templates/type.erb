@@ -7,38 +7,38 @@ module <%= @type.type_name %>
 
     # relay node interface
 
-    interfaces [NodeIdentification.interface]
+    interfaces [GraphQL::Relay::Node.interface]
     global_id_field :id
 
     # scalars
 
-  <% @type.scalar_fields.each do |f| -%>
-    field :<%= f.name %>, <% if f.required? %>!<% end %>types.<%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
-  <% end -%>
+<% @type.scalar_fields.each do |f| -%>
+    field :<%= f.name %>, <% if f.required? %>!<% end %>types.<%= f.type %>, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
 
     # belongs_to
 
-  <% @type.belongs_to_fields.each do |f| -%>
-    field :<%= f.name %>, <%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
-  <% end -%>
+<% @type.belongs_to_fields.each do |f| -%>
+    field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
 
     # has_one
 
-  <% @type.has_one_fields.each do |f| -%>
-    field :<%= f.name %>, <%= f.type %>, ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
-  <% end -%>
+<% @type.has_one_fields.each do |f| -%>
+    field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
 
     # has_many
 
-  <% @type.has_many_fields.each do |f| -%>
-    field :<%= f.name %>, types[<%= f.type %>], ""<% if f.renamed? %>, property: :<%= f.property %><% end %>
-  <% end -%>
+<% @type.has_many_fields.each do |f| -%>
+    field :<%= f.name %>, types[<%= f.type %>::Type], ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+<% end -%>
 
     # invalid
 
-  <% @type.invalid_associations.each do |a| -%>
+<% @type.invalid_associations.each do |a| -%>
     # <%= a.association.macro %> <%= a.association.name %>
-  <% end -%>
+<% end -%>
 
   end
 
@@ -46,9 +46,10 @@ module <%= @type.type_name %>
 
     name "Create<%= @type.base_name %>"
 
-    return_field <%= @type.field_name %>, <%= @type.type_name %>::Type
+    return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
+      <%= @type.field_name %> = <%= @type.model.name %>.create(inputs.to_h)
       { <%= @type.field_name %>: <%= @type.field_name %> }
     }
 
@@ -60,7 +61,7 @@ module <%= @type.type_name %>
 
     input_field :id, !types.Int
 
-    return_field <%= @type.field_name %>, <%= @type.type_name %>::Type
+    return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
       record = <%= @type.model %>.update(inputs['id'], inputs.to_h.except(:id))
