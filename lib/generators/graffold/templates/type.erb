@@ -73,9 +73,9 @@ module <%= @type.type_name %>
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
-      params = inputs.to_h.except(:id)
-      params[:updated_by] = ctx[:current_user]
-      result = <%= @type.model %>.update(params[:id], params)
+      params = inputs.to_h
+      id = inputs.delete('id')
+      result = <%= @type.model %>.update(id, params)
 
       { <%= @type.field_name %>: result }
     }
