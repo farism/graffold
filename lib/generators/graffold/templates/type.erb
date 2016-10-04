@@ -44,12 +44,19 @@ module <%= @type.type_name %>
 
   Create = GraphQL::Relay::Mutation.define do
 
-    name "Create<%= @type.base_name %>"
+    name 'Create<%= @type.base_name %>'
+
+<% @type.create_input_fields.each do |f| -%>
+    <% if f.foreign_key? && !f.required? %># <% end %>input_field :<%= f.property %>, <% if f.required? %>!<% end %>types.<%= f.type %>
+<% end -%>
 
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
-      <%= @type.field_name %> = <%= @type.model.name %>.create(inputs.to_h)
+      params = inputs.to_h
+      params[:created_by] = ctx[:current_user]
+      <%= @type.field_name %> = <%= @type.model.name %>.create(params)
+
       { <%= @type.field_name %>: <%= @type.field_name %> }
     }
 
@@ -57,27 +64,32 @@ module <%= @type.type_name %>
 
   Update = GraphQL::Relay::Mutation.define do
 
-    name "Update<%= @type.base_name %>"
+    name 'Update<%= @type.base_name %>'
 
-    input_field :id, !types.Int
+<% @type.update_input_fields.each do |f| -%>
+    input_field :<%= f.property %>, <% if f.required? %>!<% end %>types.<%= f.type %>
+<% end -%>
 
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
     resolve -> (inputs, ctx) {
-      record = <%= @type.model %>.update(inputs['id'], inputs.to_h.except(:id))
-      { <%= @type.field_name %>: record }
+      result = <%= @type.model %>.update(inputs[:id], inputs.to_h.except(:id))
+
+      { <%= @type.field_name %>: result }
     }
 
   end
 
   Delete = GraphQL::Relay::Mutation.define do
 
-    name "Delete<%= @type.base_name %>"
+    name 'Delete<%= @type.base_name %>'
 
     input_field :id, !types.Int
 
     resolve -> (inputs, ctx) {
       <%= @type.model %>.destroy(inputs['id'])
+
+      nil
     }
 
   end

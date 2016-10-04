@@ -45,7 +45,7 @@ class Graffold::Association
   end
 
   def to_field
-    Graffold::Field.new(parent: parent, association: association, name: name, type: type, required: required?)
+    Graffold::Field.new(parent: @parent, association: @association, name: name, type: type, required: required?)
   end
 
 end

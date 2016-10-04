@@ -16,12 +16,24 @@ class Graffold::Field
     @renamed = @name != name
   end
 
-  def column?
+  def from_column?
     !@column.nil?
   end
 
-  def association?
+  def from_association?
     !@association.nil?
+  end
+
+  def create_input_field?
+    (!primary_id? || foreign_key?) && !internal?
+  end
+
+  def update_input_field?
+    !foreign_key? && !internal?
+  end
+
+  def foreign_key?
+    @property.match /_id$/
   end
 
   def required?
@@ -30,6 +42,24 @@ class Graffold::Field
 
   def renamed?
     @renamed
+  end
+
+  private
+
+  def primary_id?
+    @property.match /^id$/
+  end
+
+  def internal?
+    timestamp? || userstamp?
+  end
+
+  def timestamp?
+    @property.match /^created_at|^updated_at|^deleted_at/
+  end
+
+  def userstamp?
+    @property.match /^created_by|^updated_by|^deleted_by/
   end
 
 end
