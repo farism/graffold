@@ -43,7 +43,7 @@ module <%= @type.type_name %>
   end
 
   Create = GraphQL::Relay::Mutation.define do
-q
+
     name 'Create<%= @type.base_name %>'
 
 <% @type.create_input_fields.each do |f| -%>
