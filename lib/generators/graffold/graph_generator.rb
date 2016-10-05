@@ -39,6 +39,7 @@ class Graffold::GraphGenerator < Rails::Generators::Base
 
     template 'query.erb', 'app/graph/query_type.rb'
     template 'mutation.erb', 'app/graph/mutation_type.rb'
+    template 'resource_object.erb', 'app/graph/resource_object.rb'
 
     log_spider @spider
   end

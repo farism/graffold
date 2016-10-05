@@ -1,7 +1,8 @@
 module <%= @type.type_name %>
 
-  Type = GraphQL::ObjectType.define do
+  Type = ResourceObject::Type.define do
 
+    model <%= @type.model.name %>
     name '<%= @type.base_name %>'
     description ''
 

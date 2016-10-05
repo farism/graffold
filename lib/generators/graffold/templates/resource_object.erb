@@ -1,0 +1,42 @@
+module ResourceObject
+
+  class Field < GraphQL::Field
+
+    def initialize(type)
+      self.type = type
+      self.description = "Find a `#{type.model.name}` resource by ID"
+      self.arguments = {
+        'id' => GraphQL::Argument.define do
+          name 'id'
+          type !types.Int
+          description 'ID for record'
+        end
+      }
+    end
+
+    def resolve(object, arguments, ctx)
+      type.model.find(arguments[:id])
+    end
+
+  end
+
+  class Type < GraphQL::ObjectType
+
+    accepts_definitions :model
+
+    attr_accessor :model
+
+    def initialize
+      super
+      self.interfaces = [GraphQL::Relay::Node.interface]
+      GraphQL::Define::AssignGlobalIdField.call(self, :id)
+    end
+
+    def field
+      ensure_defined
+      ResourceObject::Field.new self
+    end
+
+  end
+
+end

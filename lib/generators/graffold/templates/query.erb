@@ -10,7 +10,7 @@ QueryType = GraphQL::ObjectType.define do
   # Generated resource types
 
 <% @spider.web.each do |type| -%>
-  field :<%= type.field_name %>, field: FetchResourceField.new(type: <%= type.type_name %>::Type, model: <%= type.model.name %>)
+  field :<%= type.field_name %>, field: <%= type.type_name %>::Type.field
 <% end -%>
 
   # Add custom fields
