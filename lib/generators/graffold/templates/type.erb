@@ -6,10 +6,7 @@ module <%= @type.type_name %>
     name '<%= @type.base_name %>'
     description ''
 
-    # relay node interface
-
-    interfaces [GraphQL::Relay::Node.interface]
-    global_id_field :id
+    # custom fields
 
     # scalars
 
@@ -75,7 +72,7 @@ module <%= @type.type_name %>
 
     resolve -> (inputs, ctx) {
       params = inputs.to_h
-      id = inputs.delete('id')
+      id = params.delete('id')
       result = <%= @type.model %>.update(id, params)
 
       { <%= @type.field_name %>: result }
