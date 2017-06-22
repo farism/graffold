@@ -12,7 +12,7 @@ QueryType = GraphQL::ObjectType.define do
   # generated resource types
 
 <% @spider.web.each do |type| -%>
-  field :<%= type.field_name %>, field: <%= type.type_name %>::Type.field
+  field :<%= type.field_name %>, field: <%= type.type_name %>::Type.query_field
 <% end -%>
 
 end

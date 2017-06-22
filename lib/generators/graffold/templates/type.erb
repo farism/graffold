@@ -17,19 +17,19 @@ module <%= @type.type_name %>
     # belongs_to
 
 <% @type.belongs_to_fields.each do |f| -%>
-    field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+    <%= @skip %>field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
 <% end -%>
 
     # has_one
 
 <% @type.has_one_fields.each do |f| -%>
-    field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+    <%= @skip %>field :<%= f.name %>, <%= f.type %>::Type, ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
 <% end -%>
 
     # has_many
 
 <% @type.has_many_fields.each do |f| -%>
-    field :<%= f.name %>, types[<%= f.type %>::Type], ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
+    <%= @skip %>field :<%= f.name %>, types[<%= f.type %>::Type], ''<% if f.renamed? %>, property: :<%= f.property %><% end %>
 <% end -%>
 
     # invalid
@@ -50,7 +50,7 @@ module <%= @type.type_name %>
 
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
-    resolve -> (inputs, ctx) {
+    resolve -> (obj, inputs, ctx) {
       params = inputs.to_h
       params[:created_by] = ctx[:current_user]
       result = <%= @type.model.name %>.create(params)
@@ -70,7 +70,7 @@ module <%= @type.type_name %>
 
     return_field :<%= @type.field_name %>, <%= @type.type_name %>::Type
 
-    resolve -> (inputs, ctx) {
+    resolve -> (obj, inputs, ctx) {
       params = inputs.to_h
       id = params.delete('id')
       result = <%= @type.model %>.update(id, params)
@@ -86,7 +86,7 @@ module <%= @type.type_name %>
 
     input_field :id, !types.Int
 
-    resolve -> (inputs, ctx) {
+    resolve -> (obj, inputs, ctx) {
       <%= @type.model %>.destroy(inputs['id'])
 
       nil

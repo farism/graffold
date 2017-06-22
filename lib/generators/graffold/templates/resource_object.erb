@@ -1,28 +1,180 @@
-module ResourceObject
+GraphQL::Field.accepts_definitions(
+  searchable: GraphQL::Define.assign_metadata_key(:searchable),
+  sortable: GraphQL::Define.assign_metadata_key(:sortable),
+  filterable: GraphQL::Define.assign_metadata_key(:filterable)
+)
 
-  class Field < GraphQL::Field
+module AssignObjectField
 
-    def initialize(type)
-      self.type = type
-      self.description = "Find a `#{type.model.name}` resource by ID"
-      self.arguments = {
-        'id' => GraphQL::Argument.define do
-          name 'id'
-          type !types.Int
-          description 'ID for record'
+  def self.call(*field_args, sortable: false, filterable: false, **kwargs, &block)
+    field = GraphQL::Define::AssignObjectField.call(*field_args, **field_kwargs, &field_block)
+    field.sortable = sortable
+    field.filterable = filterable
+  end
+
+end
+
+module SearchType
+
+  def self.create(type)
+    GraphQL::InputObjectType.define do
+      name "#{type.name}Search"
+      type.fields.each do |name, field|
+        if field.metadata[:searchable]
+          input_field (field.property || name).to_sym, types.String, ''
         end
+      end
+    end
+  end
+
+end
+
+module OrderType
+
+  def self.create(type)
+    GraphQL::EnumType.define do
+      name "#{type.name}Order"
+      type.fields.each do |name, field|
+        if field.metadata[:sortable]
+          value "#{field.property || name}_ASC".upcase, '', value: "#{field.property || name} ASC"
+          value "#{field.property || name}_DESC".upcase, '', value: "#{field.property || name} DESC"
+        end
+      end
+    end
+  end
+
+end
+
+module FilterType
+
+  def self.create(type)
+    GraphQL::InputObjectType.define do
+      name "#{type.name}Filter"
+      type.fields.each do |name, field|
+        if field.metadata[:filterable]
+          input_field (field.property || name).to_sym, OperatorType::Type, ''
+        end
+      end
+    end
+  end
+
+end
+
+module OperatorType
+
+  def self.to_sql(operator, value)
+    {
+      'eq' => '= ?',
+      'neq' => '!= ?',
+      'gt' => '> ?',
+      'gte' => '>= ?',
+      'lt' => '< ?',
+      'lte' => '<= ?',
+      'includes' => 'IN (?)',
+      'excludes' => 'NOT IN(?)',
+      'isNull' => value ? 'IS NULL' : 'IS NOT NULL'
+    }[operator]
+  end
+
+  Type = GraphQL::InputObjectType.define do
+    name "FilterOperator"
+    input_field :eq, types.String
+    input_field :neq, types.String
+    input_field :gt, types.String
+    input_field :gte, types.String
+    input_field :lt, types.String
+    input_field :lte, types.String
+    input_field :includes, types[types.String]
+    input_field :excludes, types[types.String]
+    input_field :isNull, types.Boolean
+  end
+
+end
+
+module SearchOrderAndFilterField
+
+  def self.create(type, association, paginate: false)
+    search_type = SearchType.create(type)
+    order_type = OrderType.create(type)
+    filter_type = FilterType.create(type)
+
+    GraphQL::Field.define do
+      type paginate ? type.connection_type : types[type]
+
+      description ''
+
+      if search_type.input_fields.length > 0
+        argument :search, search_type, ''
+      end
+
+      if filter_type.input_fields.length > 0
+        argument :filter, filter_type, ''
+      end
+
+      if order_type.values.length > 0
+        argument :order, types[order_type], ''
+      end
+
+      resolve -> (obj, args, ctx) {
+        relation = obj.send(association)
+
+        if args[:search]
+          clauses = []
+          values = []
+          args[:search].each do |name, value|
+            clauses.push("LOWER(#{name}) LIKE LOWER(?)")
+            values.push("%#{value}%")
+          end
+          relation = relation.where(clauses.join(' OR '), *values)
+        end
+
+        if args[:filter]
+          clauses = []
+          values = []
+          args[:filter].each do |name, operators|
+            operators.each do |operator, value|
+              clauses.push("#{name} #{OperatorType.to_sql(operator, value)}")
+              if operator != 'isNull'
+                values.push(value)
+              end
+            end
+          end
+          relation = relation.where(clauses.join(' OR '), *values)
+        end
+
+        if args[:order]
+          relation = relation.order(args[:order].join(', '))
+        end
+
+        relation
       }
     end
-
-    def resolve(object, arguments, ctx)
-      type.model.find(arguments[:id])
-    end
-
   end
+
+end
+
+module QueryField
+
+  def self.create(type)
+    model = type.model
+
+    GraphQL::Field.define do
+      type type
+      description "Find a `#{model.name}` resource by ID"
+      argument :id, !types.Int, 'ID for record'
+      resolve -> (obj, args, ctx) {
+        model.find(args[:id])
+      }
+    end
+  end
+
+end
+
+module ResourceObject
 
   class Type < GraphQL::ObjectType
 
-    accepts_definitions :model
+    accepts_definitions :model, field: AssignObjectField
 
     attr_accessor :model
 
@@ -32,9 +184,31 @@ module ResourceObject
       GraphQL::Define::AssignGlobalIdField.call(self, :id)
     end
 
-    def field
+    def connection_type
+      self.define_connection do
+        field :totalCount do
+          type types.Int
+          resolve -> (obj, args, ctx) { obj.object.count }
+        end
+      end
+    end
+
+    def connection_field(association)
       ensure_defined
-      ResourceObject::Field.new self
+      binding.pry
+      @connection_field ||= GraphQL::Relay::ConnectionField.create(
+        SearchOrderAndFilterField.create(self, association, paginate: true)
+      )
+    end
+
+    def list_field(association)
+      ensure_defined
+      @list_field ||= SearchOrderAndFilterField.create(self, association)
+    end
+
+    def query_field
+      ensure_defined
+      @query_field ||= QueryField.create(self)
     end
 
   end

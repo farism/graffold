@@ -33,6 +33,7 @@ class Graffold::GraphGenerator < Rails::Generators::Base
     @spider.crawl
     @spider.web.each do |type|
       @type = type
+      @skip = depth > 0 ? '' : '# '
       log_type type if verbose?
       template 'type.erb', "app/graph/types/#{type.file_name}.rb"
     end
